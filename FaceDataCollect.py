@@ -1,11 +1,14 @@
 import cv2
-
+import numpy as np
 cam = cv2.VideoCapture(0)
 
 fileName = input("Enter the name of the person : ")
 dataset_path = "./data/"
 offset = 40
 model = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
+
+faceData = []
+count = 0
 
 while True:
     success,img = cam.read()
@@ -23,12 +26,24 @@ while True:
 
         cropped_face = img[y-offset:y+h+offset,x-offset:x+w+offset]
         cropped_face = cv2.resize(cropped_face,(100,100))
+        count+=1
+        if count %10 == 0:
+            faceData.append(cropped_face)
+            print("Saved so far "+ str(len(faceData)))
 
     cv2.imshow("Image window", img)
     cv2.imshow("Cropped Face",cropped_face)
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
+faceData = np.asarray(faceData)
+m = faceData.shape[0]
+faceData = faceData.reshape((m,-1))
+
+print(faceData.shape)
+file = dataset_path + fileName + ".npy"
+np.save(file,faceData)
+print("Data saved!")
 
 cam.release()
 cv2.destroyAllWindows()
